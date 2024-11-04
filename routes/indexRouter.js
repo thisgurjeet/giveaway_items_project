@@ -5,6 +5,7 @@ const multer = require("multer");
 const path = require("path");
 const indexController = require("../controllers/indexController");
 
+
 // Multer setup for file uploads
 const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, 'public/item_images'),
@@ -14,9 +15,13 @@ const upload = multer({ storage });
 
 // Routes
 router.post("/uploadItem", authenticate, upload.single('image'), indexController.uploadItem);
-router.post("/claimItem", authenticate, indexController.claimItem);
+// Change this line from `POST` to `PUT`
+router.put("/editItem/:id", authenticate, upload.single('image'), indexController.editItem);
+
+router.post("/claimItem/:id", authenticate, indexController.claimItem);
 router.delete("/deleteItem/:id", authenticate, indexController.deleteItem);
 router.post("/redeemGiftCard", authenticate, indexController.redeemGiftCard);
 router.get("/myGiftCards", authenticate, indexController.getGiftCards);
 
 module.exports = router;
+

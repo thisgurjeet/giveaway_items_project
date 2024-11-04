@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const authenticate = require('../middlewares/authenticate');
 const multer = require("multer");
 const cookieParser = require("cookie-parser");
 const {
@@ -34,7 +35,7 @@ router.post("/login", loginUser);
 router.post("/logout", logoutUser);
 
 // profile route of user
-router.get('/profile', userProfile);
+router.get('/profile', authenticate, userProfile);
 
 
 module.exports = router;

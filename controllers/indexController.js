@@ -46,9 +46,51 @@ const uploadItem = async (req, res) => {
     }
 };
 
+
+
+const editItem = async (req, res) => {
+    try {
+        // Clean up itemId by trimming and removing newline characters and other unwanted characters
+        const itemId = req.params.id;
+        const { name, description, purchasedDate, condition, category } = req.body;
+        const image = req.file ? `/item_images/${req.file.filename}` : null;
+
+        const item = await Item.findById(itemId);
+
+        // Check if the item exists and is not claimed
+        if (!item) {
+            return res.status(404).json({ message: "Item not found" });
+        }
+        if (item.isClaimed) {
+            return res.status(400).json({ message: "Cannot edit a claimed item" });
+        }
+
+        // Update item details
+        item.name = name || item.name;
+        item.description = description || item.description;
+        item.purchasedDate = purchasedDate || item.purchasedDate;
+        item.condition = condition || item.condition;
+        item.category = category || item.category;
+        item.image = image || item.image;
+
+        await item.save();
+
+        res.status(200).json({
+            message: "Item updated successfully",
+            updatedItem: item,
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Server Error");
+    }
+};
+
+
+
+
 const claimItem = async (req, res) => {
     try {
-        const { itemId } = req.body;
+        const itemId = req.params.id.trim();  // Trim any extra whitespace or newline characters
         const item = await Item.findById(itemId);
 
         if (!item || item.isClaimed) {
@@ -56,6 +98,7 @@ const claimItem = async (req, res) => {
         }
 
         item.isClaimed = true;
+        item.claimedBy = req.user._id; // Set the user who claimed the item
         await item.save();
 
         const user = await User.findById(req.user._id);
@@ -73,6 +116,9 @@ const claimItem = async (req, res) => {
         res.status(500).send("Server Error");
     }
 };
+
+
+
 
 const deleteItem = async (req, res) => {
     try {
@@ -96,7 +142,7 @@ const deleteItem = async (req, res) => {
 const redeemGiftCard = async (req, res) => {
     try {
         const user = await User.findById(req.user._id);
-        const requiredPoints = 500;
+        const requiredPoints = 300;
 
         if (user.pointsEarned < requiredPoints) {
             return res.status(400).json({ message: "Not enough points to redeem a gift card" });
@@ -105,17 +151,17 @@ const redeemGiftCard = async (req, res) => {
         user.pointsEarned -= requiredPoints;
         const giftCardCode = generateGiftCardCode();
 
-        user.giftCards.push({ type: 'amazon', value: 500, code: giftCardCode });
+        user.giftCards.push({ type: 'amazon', value: 300, code: giftCardCode });
         await user.save();
 
-        const emailSubject = "Your Amazon Rs. 500 Gift Card";
+        const emailSubject = "Your Amazon Rs. 300 Gift Card";
         const emailText = `Hi ${user.fullname}, here is your gift card code: ${giftCardCode}`;
         const emailHtml = `<h2>Hi ${user.fullname},</h2><p>Your Amazon gift card code: ${giftCardCode}</p>`;
         await sendEmail(user.email, emailSubject, emailText, emailHtml);
 
         res.status(200).json({
             message: "Gift card redeemed successfully!",
-            giftCard: { type: 'Amazon', value: 500, code: giftCardCode },
+            giftCard: { type: 'Amazon', value: 300, code: giftCardCode },
             pointsRemaining: user.pointsEarned,
         });
     } catch (error) {
@@ -123,6 +169,8 @@ const redeemGiftCard = async (req, res) => {
         res.status(500).send("Server Error");
     }
 };
+
+
 
 const getGiftCards = async (req, res) => {
     try {
@@ -137,6 +185,7 @@ const getGiftCards = async (req, res) => {
 module.exports = {
     uploadItem,
     claimItem,
+    editItem,
     deleteItem,
     redeemGiftCard,
     getGiftCards

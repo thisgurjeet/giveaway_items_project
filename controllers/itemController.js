@@ -26,40 +26,50 @@ const getItemById = async (req, res) => {
     }
 };
 
+
 // Get claimed items for authenticated user
-const getClaimedItems = async (req, res) => {
+const getClaimedItems = async (req, res) => { 
     try {
+        console.log("Fetching claimed items for user:", req.user._id);
+
+        // Fetch the user and populate the claimedList field to get the actual items
         const user = await User.findById(req.user._id).populate('claimedList');
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
+
+        // Check if claimedList has any items
+        if (!user || !user.claimedList.length) {
+            return res.status(404).json({ message: 'No claimed items found for this user' });
         }
-        res.status(200).json({ items: user.claimedList || [] });
-    } catch (error) {
-        console.error(error);
-        res.status(500).send("Internal Server Error");
+
+        // Return the claimed items
+        res.status(200).json(user.claimedList);
+    } catch (err) {
+        console.error("Error in getClaimedItems:", err);
+        res.status(500).send("Server Error");
     }
 };
 
-// Search items by name or category
+
 const searchItems = async (req, res) => {
+    const { query } = req.query;
+    if (!query) {
+        return res.status(400).json({ message: 'Query parameter is required' });
+    }
+
+    const trimmedQuery = query.trim(); // Trim the query
+    console.log(`Searching for items with name matching: ${trimmedQuery}`); // Log the query
+
     try {
-        const { name, category } = req.query;
-        const query = {};
-
-        if (name) {
-            query.name = { $regex: new RegExp(name, 'i') };
-        }
-        if (category) {
-            query.category = category;
-        }
-
-        const items = await Item.find(query);
-        res.status(200).json(items.length ? items : { message: "No items found matching your search", items: [] });
+        const items = await Item.find({ name: { $regex: trimmedQuery, $options: 'i' } });
+        console.log("Found items:", items); // Log found items
+        res.status(200).json(items);
     } catch (error) {
-        console.error(error);
-        res.status(500).send("Internal Server Error");
+        console.error("Error searching items:", error);
+        res.status(500).json({ message: error.message });
     }
 };
+
+
+
 
 // Social sharing of items
 const shareItem = async (req, res) => {
