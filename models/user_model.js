@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 // Connecting to the database
-mongoose.connect("mongodb://127.0.0.1:27017/giveaway");
+
+mongoose.connect(process.env.MONGO_URL, )
+    .then(() => console.log("Connected to MongoDB"))
+    .catch((err) => console.error("MongoDB connection error:", err));
+
 
 
 const userSchema = mongoose.Schema({

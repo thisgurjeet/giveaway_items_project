@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require("express");
 const http = require("http"); // Required to integrate socket.io with express
 const socketIo = require("socket.io");
@@ -11,7 +12,7 @@ const indexRouter = require("./routes/indexRouter");
 const cookieParser = require("cookie-parser");
 const path = require("path");
 const expressSession = require("express-session");
-require("dotenv").config();
+
 
 
 const Chat = require("./models/chat_model"); // Import chat model
@@ -83,7 +84,9 @@ io.on('connection', (socket) => {
     });
 });
 
+
+
 // Start server
-server.listen(3000, () => {
+server.listen(process.env.port, () => {
     console.log("Server is running on port 3000");
 });

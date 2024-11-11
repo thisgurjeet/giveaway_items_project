@@ -51,7 +51,7 @@ const uploadItem = async (req, res) => {
 const editItem = async (req, res) => {
     try {
         // Clean up itemId by trimming and removing newline characters and other unwanted characters
-        const itemId = req.params.id;
+        const itemId = req.params.id.trim();
         const { name, description, purchasedDate, condition, category } = req.body;
         const image = req.file ? `/item_images/${req.file.filename}` : null;
 
