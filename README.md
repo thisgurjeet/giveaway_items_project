@@ -1,0 +1,1 @@
+My Project "Re-Home" a sustainable giveaway platform, It is a backend project where users can upload unused or old items for giveaway allowing others users to claim them. This app incorporates gamification to encourage engagement by letting users earn reward points, reedemable for amazon gift cards.
